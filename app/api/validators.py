@@ -10,13 +10,13 @@ async def check_exists(
         obj_id: int,
         session: AsyncSession,
 ):
-    object = await charity_project_crud.get(obj_id, session)
-    if object is None:
+    model_object = await charity_project_crud.get(obj_id, session)
+    if model_object is None:
         raise HTTPException(
             status_code=404,
             detail='Объект не существует!'
         )
-    return object
+    return model_object
 
 
 async def check_the_opportunity_to_delete(

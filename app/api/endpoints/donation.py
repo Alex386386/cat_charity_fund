@@ -20,7 +20,6 @@ router = APIRouter()
 async def get_all_reservations(
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Только для суперюзеров."""
     donations = await donation_crud.get_multi(session)
     return donations
 
@@ -49,6 +48,5 @@ async def get_all_reservations(
         user: User = Depends(current_user),
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Только для суперюзеров."""
     donations = await donation_crud.get_my(user=user, session=session)
     return donations

@@ -23,20 +23,18 @@ class CRUDDonation(CRUDBase):
 
         projects = await session.execute(
             select(CharityProject)
-            .where(CharityProject.fully_invested == False)
+            .where(CharityProject.fully_invested == 0)
             .order_by(CharityProject.create_date)
         )
         projects = projects.scalars().all()
         if projects:
             for project in projects:
                 project_invested = project.invested_amount
-                need_to_full = project.full_amount - project.invested_amount
-                donation_able_to_invest = (
-                        db_donation.full_amount - db_donation.invested_amount)
+                fill = project.full_amount - project.invested_amount
+                funds = db_donation.full_amount - db_donation.invested_amount
 
-                if need_to_full >= donation_able_to_invest:
-                    project.invested_amount = (
-                            project_invested + donation_able_to_invest)
+                if fill >= funds:
+                    project.invested_amount = project_invested + funds
                     if project.invested_amount == project.full_amount:
                         project.fully_invested = True
                         project.close_date = datetime.now()
@@ -44,8 +42,8 @@ class CRUDDonation(CRUDBase):
                     db_donation.fully_invested = True
                     db_donation.close_date = datetime.now()
                     break
-                elif need_to_full < donation_able_to_invest:
-                    db_donation.invested_amount += need_to_full
+                elif fill < funds:
+                    db_donation.invested_amount += fill
                     project.invested_amount = project.full_amount
                     project.fully_invested = True
                     project.close_date = datetime.now()

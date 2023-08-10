@@ -20,46 +20,39 @@ class CRUDCharityProject(CRUDBase):
         obj_in_data['create_date'] = datetime.now()
         obj_in_data['invested_amount'] = 0
         obj_in_data['close_date'] = None
-        d_project = self.model(**obj_in_data)
-        if d_project.full_amount != 0:
-            donations = await session.execute(
-                select(Donation)
-                .where(Donation.fully_invested == False)
-                .order_by(Donation.create_date)
-            )
-            donations = donations.scalars().all()
-            if donations:
-                for donation in donations:
-                    project_invested = d_project.invested_amount
-                    need_to_full = (
-                            d_project.full_amount - d_project.invested_amount)
-                    donation_able_to_invest = (
-                            donation.full_amount - donation.invested_amount)
+        db_project = self.model(**obj_in_data)
+        donations = await session.execute(
+            select(Donation)
+            .where(Donation.fully_invested == 0)
+            .order_by(Donation.create_date)
+        )
+        donations = donations.scalars().all()
+        if donations:
+            for donation in donations:
+                project_invested = db_project.invested_amount
+                fill = db_project.full_amount - db_project.invested_amount
+                funds = donation.full_amount - donation.invested_amount
 
-                    if need_to_full >= donation_able_to_invest:
-                        d_project.invested_amount = (
-                                project_invested + donation_able_to_invest)
-                        if d_project.invested_amount == d_project.full_amount:
-                            d_project.fully_invested = True
-                            d_project.close_date = datetime.now()
-                        donation.invested_amount = donation.full_amount
-                        donation.fully_invested = True
-                        donation.close_date = datetime.now()
-                        continue
-                    elif need_to_full < donation_able_to_invest:
-                        donation.invested_amount += need_to_full
-                        d_project.invested_amount = d_project.full_amount
-                        d_project.fully_invested = True
-                        d_project.close_date = datetime.now()
-                        break
-        elif d_project.full_amount == 0:
-            d_project.fully_invested = True
-            d_project.close_date = d_project.create_date
+                if fill >= funds:
+                    db_project.invested_amount = project_invested + funds
+                    if db_project.invested_amount == db_project.full_amount:
+                        db_project.fully_invested = True
+                        db_project.close_date = datetime.now()
+                    donation.invested_amount = donation.full_amount
+                    donation.fully_invested = True
+                    donation.close_date = datetime.now()
+                    continue
+                elif fill < funds:
+                    donation.invested_amount += fill
+                    db_project.invested_amount = db_project.full_amount
+                    db_project.fully_invested = True
+                    db_project.close_date = datetime.now()
+                    break
 
-        session.add(d_project)
+        session.add(db_project)
         await session.commit()
-        await session.refresh(d_project)
-        return d_project
+        await session.refresh(db_project)
+        return db_project
 
     async def update_project(
             self,
