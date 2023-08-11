@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.db import get_async_session
+from app.core.utils import USER_PASSWORD_LEN
 from app.models.user import User
 from app.schemas.user import UserCreate
 
@@ -41,7 +42,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             password: str,
             user: Union[UserCreate, User],
     ) -> None:
-        if len(password) < 3:
+        if len(password) < USER_PASSWORD_LEN:
             raise InvalidPasswordException(
                 reason='Password should be at least 3 characters'
             )

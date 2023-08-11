@@ -11,22 +11,11 @@ from app.models import CharityProject, Donation
 
 class CRUDCharityProject(CRUDBase):
 
-    async def create_project(
+    async def calculate(
             self,
-            obj_in,
-            session: AsyncSession,
+            db_project,
+            donations
     ):
-        obj_in_data = obj_in.dict()
-        obj_in_data['create_date'] = datetime.now()
-        obj_in_data['invested_amount'] = 0
-        obj_in_data['close_date'] = None
-        db_project = self.model(**obj_in_data)
-        donations = await session.execute(
-            select(Donation)
-            .where(Donation.fully_invested == 0)
-            .order_by(Donation.create_date)
-        )
-        donations = donations.scalars().all()
         if donations:
             for donation in donations:
                 project_invested = db_project.invested_amount
@@ -48,6 +37,27 @@ class CRUDCharityProject(CRUDBase):
                     db_project.fully_invested = True
                     db_project.close_date = datetime.now()
                     break
+        return db_project
+
+    async def create_project(
+            self,
+            obj_in,
+            session: AsyncSession,
+    ):
+        obj_in_data = obj_in.dict()
+        obj_in_data['create_date'] = datetime.now()
+        obj_in_data['invested_amount'] = 0
+        obj_in_data['close_date'] = None
+        db_project = self.model(**obj_in_data)
+
+        donations = await session.execute(
+            select(Donation)
+            .where(Donation.fully_invested == 0)
+            .order_by(Donation.create_date)
+        )
+        donations = donations.scalars().all()
+
+        db_project = await self.calculate(db_project, donations)
 
         session.add(db_project)
         await session.commit()
@@ -84,8 +94,7 @@ class CRUDCharityProject(CRUDBase):
                 CharityProject.name == project_name
             )
         )
-        db_project_id = db_project_id.scalars().first()
-        return db_project_id
+        return db_project_id.scalars().first()
 
 
 charity_project_crud = CRUDCharityProject(CharityProject)

@@ -3,9 +3,11 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, PositiveInt
 
+from app.core.utils import EXAMPLE_VALUE
+
 
 class DonationBase(BaseModel):
-    full_amount: PositiveInt = Field(..., example=1350)
+    full_amount: PositiveInt = Field(..., example=EXAMPLE_VALUE)
     comment: Optional[str] = Field(
         None,
         title='Комментарий к пожертвованию',

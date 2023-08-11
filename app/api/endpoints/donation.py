@@ -20,8 +20,7 @@ router = APIRouter()
 async def get_all_reservations(
         session: AsyncSession = Depends(get_async_session),
 ):
-    donations = await donation_crud.get_multi(session)
-    return donations
+    return await donation_crud.get_multi(session)
 
 
 @router.post(
@@ -34,10 +33,9 @@ async def create_donation(
         session: AsyncSession = Depends(get_async_session),
         user: User = Depends(current_user),
 ):
-    new_reservation = await donation_crud.create_donation(
+    return await donation_crud.create_donation(
         donation, user, session
     )
-    return new_reservation
 
 
 @router.get(
@@ -48,5 +46,4 @@ async def get_all_reservations(
         user: User = Depends(current_user),
         session: AsyncSession = Depends(get_async_session),
 ):
-    donations = await donation_crud.get_my(user=user, session=session)
-    return donations
+    return await donation_crud.get_my(user=user, session=session)

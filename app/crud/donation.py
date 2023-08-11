@@ -3,30 +3,18 @@ from typing import List
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.crud.base import CRUDBase
 from app.models import Donation, User, CharityProject
 
 
 class CRUDDonation(CRUDBase):
 
-    async def create_donation(
+    async def calculate(
             self,
-            obj_in,
-            user: User,
-            session: AsyncSession,
+            db_donation,
+            projects
     ):
-        obj_in_data = obj_in.dict()
-        obj_in_data['create_date'] = datetime.now()
-        obj_in_data['user_id'] = user.id
-        obj_in_data['invested_amount'] = 0
-        db_donation = self.model(**obj_in_data)
-
-        projects = await session.execute(
-            select(CharityProject)
-            .where(CharityProject.fully_invested == 0)
-            .order_by(CharityProject.create_date)
-        )
-        projects = projects.scalars().all()
         if projects:
             for project in projects:
                 project_invested = project.invested_amount
@@ -47,6 +35,27 @@ class CRUDDonation(CRUDBase):
                     project.invested_amount = project.full_amount
                     project.fully_invested = True
                     project.close_date = datetime.now()
+        return db_donation
+
+    async def create_donation(
+            self,
+            obj_in,
+            user: User,
+            session: AsyncSession,
+    ):
+        obj_in_data = obj_in.dict()
+        obj_in_data['create_date'] = datetime.now()
+        obj_in_data['user_id'] = user.id
+        obj_in_data['invested_amount'] = 0
+        db_donation = self.model(**obj_in_data)
+
+        projects = await session.execute(
+            select(CharityProject)
+            .where(CharityProject.fully_invested == 0)
+            .order_by(CharityProject.create_date)
+        )
+        projects = projects.scalars().all()
+        db_donation = await self.calculate(db_donation, projects)
 
         session.add(db_donation)
         await session.commit()
@@ -63,8 +72,6 @@ class CRUDDonation(CRUDBase):
                 Donation.user_id == user.id
             )
         )
-        if not donations:
-            return []
         return donations.scalars().all()
 
 

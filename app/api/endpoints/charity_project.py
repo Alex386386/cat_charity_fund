@@ -35,9 +35,8 @@ async def create_new_charity_project(
         session: AsyncSession = Depends(get_async_session),
 ):
     await check_the_unique_project_name(charity_project.name, session)
-    new_project = await charity_project_crud.create_project(
+    return await charity_project_crud.create_project(
         charity_project, session)
-    return new_project
 
 
 @router.get(
@@ -48,8 +47,7 @@ async def create_new_charity_project(
 async def get_all_projects(
         session: AsyncSession = Depends(get_async_session),
 ):
-    projects = await charity_project_crud.get_multi(session)
-    return projects
+    return await charity_project_crud.get_multi(session)
 
 
 @router.patch(
@@ -66,10 +64,9 @@ async def partially_update_meeting_room(
     project = await check_the_opportunity_to_update_project(project, obj_in)
     await check_the_unique_project_name_update(
         obj_in.name, project_id, session)
-    updated_project = await charity_project_crud.update_project(
+    return await charity_project_crud.update_project(
         project, obj_in, session
     )
-    return updated_project
 
 
 @router.delete(
@@ -81,9 +78,6 @@ async def remove_project(
         project_id: int,
         session: AsyncSession = Depends(get_async_session),
 ):
-    project_obj = await check_exists(
-        project_id, session
-    )
+    project_obj = await check_exists(project_id, session)
     await check_the_opportunity_to_delete(project_obj)
-    meeting_room = await charity_project_crud.remove(project_obj, session)
-    return meeting_room
+    return await charity_project_crud.remove(project_obj, session)
