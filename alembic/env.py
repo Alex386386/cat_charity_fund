@@ -8,8 +8,6 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
-
-# Импортируем базовый класс Base.
 from app.core.base import Base
 
 
