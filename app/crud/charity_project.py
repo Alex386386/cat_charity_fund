@@ -1,12 +1,14 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.utils import FULLY_INVESTED_TRUE, FULLY_INVESTED_FALSE
 from app.crud.base import CRUDBase
 from app.models import CharityProject, Donation
+from app.schemas.charity_project import CharityProjectDB
 
 
 class CRUDCharityProject(CRUDBase):
@@ -52,7 +54,7 @@ class CRUDCharityProject(CRUDBase):
 
         donations = await session.execute(
             select(Donation)
-            .where(Donation.fully_invested == 0)
+            .where(Donation.fully_invested == FULLY_INVESTED_FALSE)
             .order_by(Donation.create_date)
         )
         donations = donations.scalars().all()
@@ -95,6 +97,27 @@ class CRUDCharityProject(CRUDBase):
             )
         )
         return db_project_id.scalars().first()
+
+    async def get_projects_by_completion_rate(
+            self,
+            session: AsyncSession,
+    ) -> List[Dict[str, int]]:
+        result = await session.execute(
+            select(CharityProject)
+            .where(CharityProject.fully_invested == FULLY_INVESTED_TRUE)
+            .order_by(
+                (CharityProject.close_date - CharityProject.create_date).asc()
+            )
+        )
+        projects = result.scalars().all()
+
+        projects_models = [CharityProjectDB.from_orm(project) for project in
+                           projects]
+
+        projects_dicts = [project_model.dict() for project_model in
+                          projects_models]
+
+        return projects_dicts
 
 
 charity_project_crud = CRUDCharityProject(CharityProject)

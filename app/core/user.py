@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.db import get_async_session
-from app.core.utils import USER_PASSWORD_LEN
+from app.core.utils import USER_PASSWORD_LEN, JWT_SECONDS_LIMIT
 from app.models.user import User
 from app.schemas.user import UserCreate
 
@@ -25,7 +25,8 @@ bearer_transport = BearerTransport(tokenUrl='auth/jwt/login')
 
 
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=settings.secret, lifetime_seconds=3600)
+    return JWTStrategy(
+        secret=settings.secret, lifetime_seconds=JWT_SECONDS_LIMIT)
 
 
 auth_backend = AuthenticationBackend(

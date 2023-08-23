@@ -4,6 +4,7 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.utils import FULLY_INVESTED_FALSE
 from app.crud.base import CRUDBase
 from app.models import Donation, User, CharityProject
 
@@ -51,7 +52,7 @@ class CRUDDonation(CRUDBase):
 
         projects = await session.execute(
             select(CharityProject)
-            .where(CharityProject.fully_invested == 0)
+            .where(CharityProject.fully_invested == FULLY_INVESTED_FALSE)
             .order_by(CharityProject.create_date)
         )
         projects = projects.scalars().all()
