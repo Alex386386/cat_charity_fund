@@ -20,7 +20,6 @@ async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
                                    'gridProperties': {'rowCount': MAX_LENGTH,
                                                       'columnCount': COLUMN}}}]
     }
-    # Выполняем запрос
     response = await wrapper_services.as_service_account(
         service.spreadsheets.create(json=spreadsheet_body)
     )
@@ -28,7 +27,6 @@ async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
     return spreadsheetid
 
 
-# Новая функция!
 async def set_user_permissions(
         spreadsheetid: str,
         wrapper_services: Aiogoogle
