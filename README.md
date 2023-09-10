@@ -11,8 +11,10 @@
 Python 3.8, FastAPI 0.78, aiogoogle 5.4.0
 
 ### Установка, Как запустить проект:
-https://github.com/Alex386386/cat_charity_fund
+
 Клонировать репозиторий и перейти в него в командной строке:
+
+https://github.com/Alex386386/cat_charity_fund
 
 ```
 git clone 
